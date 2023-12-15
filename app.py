@@ -6,6 +6,8 @@ import plotly.graph_objects as go
 from scipy.spatial import KDTree
 from typing import Tuple
 from enum import Enum
+import dash_bootstrap_components as dbc
+
 
 # Axes ranges
 RANGE_X = [-7,7]
@@ -30,7 +32,7 @@ class EditMode(Enum):
 
 
 EDIT_MODE = EditMode.TRANSLATE
-
+DATA_MODE = DataMode.CLUSTERS
 
 class Data:
 
@@ -39,23 +41,26 @@ class Data:
 
     def set_mode(self, mode: DataMode):
         if mode == DataMode.GAUSSIAN:
-            self.data = np.random.randn(100, 2)
+            data = np.random.randn(100, 2)
         elif mode == DataMode.UNIFORM:
-            self.data = np.random.rand(100, 2) - 0.5
+            data = 3*(np.random.rand(100, 2) - 0.5)
         elif mode == DataMode.GRID:
             # Grid in [-0.5,0.5] with 10 points in each direction
             grid = np.mgrid[-0.5:0.5:0.1, -0.5:0.5:0.1]
-            self.data = np.vstack((grid[0].flatten(), grid[1].flatten())).T
+            grid *= 6
+            data = np.vstack((grid[0].flatten(), grid[1].flatten())).T
         elif mode == DataMode.CLUSTERS:
             n_gaussian = np.random.randint(4, 10)
             n_pts_per_gaussian = 100 // n_gaussian
-            data = []
+            data_list = []
             for i in range(n_gaussian):
                 offset = 4*(np.random.rand(2) - 0.5)
-                data.append(0.25*np.random.randn(n_pts_per_gaussian, 2) + offset)
-            self.data = np.vstack(data)
+                data_list.append(0.25*np.random.randn(n_pts_per_gaussian, 2) + offset)
+            data = np.vstack(data_list)
         else:
             raise NotImplementedError()
+        data -= np.mean(data, axis=0)
+        self.data = data
         self.tree = KDTree(self.data)
 
     @property
@@ -93,12 +98,14 @@ class Data:
         dist = self.chamfer_distance_from_offset(offset_x, offset_y, rotate_angle)
         return f'Chamfer distance: {dist:.2f}'
 
+global DATA
 DATA = Data()
 
 # Create a Dash application
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 def create_scatter_fig() -> go.Figure:
+    global DATA
 
     fig = go.Figure()
 
@@ -173,24 +180,51 @@ def create_scatter_fig() -> go.Figure:
 fig = create_scatter_fig()
 
 # Define the layout of the app
-app.layout = html.Div([
-    dcc.Graph(
-        id='scatter-plot',
-        figure=fig,
-        config={
-           'displayModeBar': False
-        }
-    )
-])
-
-# Define callback to handle drag events
-@app.callback(
-    Output('scatter-plot', 'figure'),
-    Input('scatter-plot', 'hoverData'),
-    Input('scatter-plot', 'figure')
+graph = dcc.Graph(
+    id='scatter-plot',
+    figure=fig,
+    config={
+    'displayModeBar': False
+    }
 )
-def update_scatter_plot(hoverData, fig):
+dropdown_edit = dcc.Dropdown(
+    value=EDIT_MODE.value,
+    options=[
+        {'label': mode.value, 'value': mode.value}
+        for mode in EditMode
+    ],
+    id="edit-dropdown",
+)
+dropdown_data = dcc.Dropdown(
+    value=DATA_MODE.value,
+    options=[
+        {'label': mode.value, 'value': mode.value}
+        for mode in DataMode
+    ],
+    id="data-dropdown",
+)
+buttons = [
+    dbc.Label("Edit mode"),
+    dropdown_edit,
+    dbc.Label("Data mode"),
+    dropdown_data,
+    dbc.Label("Randomize data"),
+    dbc.Button("Randomize", id="randomize-button", className="mr-1"),
+    ]
+app.layout = dbc.Container(
+    [
+        dbc.Row(
+            [
+                dbc.Col(graph, md=10),
+                dbc.Col(buttons, md=2),
+            ],
+            align="center",
+        ),
+    ],
+    fluid=True,
+)
 
+def update_hover(hoverData, fig):
     if hoverData is None:
         return dash.no_update
     if not 'points' in hoverData:
@@ -223,6 +257,57 @@ def update_scatter_plot(hoverData, fig):
         raise NotImplementedError()
 
     return fig
+
+
+def update_edit(edit_mode, fig):
+    global EDIT_MODE
+    EDIT_MODE = EditMode(edit_mode)
+    DATA.set_mode(DATA_MODE)
+    fig = create_scatter_fig()
+    return fig
+
+
+def update_data(data_mode, fig):
+    global DATA_MODE
+    DATA_MODE = DataMode(data_mode)
+    DATA.set_mode(DATA_MODE)
+    fig = create_scatter_fig()
+    return fig
+
+
+def randomize_button():
+    DATA.set_mode(DATA_MODE)
+    fig = create_scatter_fig()
+    return fig
+
+
+# Define callback to handle drag events
+@app.callback(
+    Output('scatter-plot', 'figure'),
+    Input('scatter-plot', 'hoverData'),
+    Input('scatter-plot', 'figure'),
+    Input('edit-dropdown', 'value'),
+    Input('data-dropdown', 'value'),
+    Input('randomize-button', 'n_clicks'),
+)
+def update_scatter_plot(hoverData, fig, edit_mode, data_mode, n_clicks):
+    # Figure out what changed
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return dash.no_update
+    prop_id = ctx.triggered[0]['prop_id']
+    if prop_id == 'scatter-plot.figure':
+        return dash.no_update
+    elif prop_id == 'scatter-plot.hoverData':
+        return update_hover(hoverData, fig)
+    elif prop_id == 'edit-dropdown.value':
+        return update_edit(edit_mode, fig)
+    elif prop_id == 'data-dropdown.value':
+        return update_data(data_mode, fig)
+    elif prop_id == 'randomize-button.n_clicks':
+        return randomize_button()
+    else:
+        raise NotImplementedError()
 
 # Run the Dash app
 if __name__ == '__main__':
