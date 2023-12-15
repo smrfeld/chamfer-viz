@@ -137,7 +137,7 @@ def create_scatter_fig() -> go.Figure:
         x=grid[0].flatten(),
         y=grid[1].flatten(),
         mode='markers',
-        marker=dict(size=1, color='gray', opacity=0.0),
+        marker=dict(size=10, opacity=0.0),
         showlegend=False
     )
 
