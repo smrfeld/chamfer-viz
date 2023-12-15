@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dash App</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <label for="edit-dropdown">Edit mode</label>
+                <select id="edit-dropdown" class="form-control">
+                    <!-- Options will be populated using JavaScript -->
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="data-dropdown">Data mode</label>
+                <select id="data-dropdown" class="form-control">
+                    <!-- Options will be populated using JavaScript -->
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label>Randomize data</label>
+                <button id="randomize-button" class="btn btn-primary">Randomize</button>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div id="scatter-plot">
+                <!-- Plotly graph will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Custom scripts -->
+    <script src="app.js"></script>
+</body>
+</html>

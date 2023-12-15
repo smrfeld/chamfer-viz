@@ -231,6 +231,7 @@ app.layout = dbc.Container(
     fluid=True,
 )
 
+
 def update_hover(hoverData, fig):
     if hoverData is None:
         return dash.no_update
