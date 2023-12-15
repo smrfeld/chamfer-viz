@@ -16,14 +16,9 @@ let data = [];
 let editMode = 'Translate';
 let dataMode = 'Gaussian';
 
-// Initialize range from -7 to 7 - RANGE_X = [-7,7]
-let rangeX = { min: -7, max: 7 };
-let rangeY = { min: -7, max: 7 };
-
-// Grid spacing for hovering
-// This is a trick to do the dragging with resolution DELTA
-// The grid is not shown
-let delta = 0.5; // Step size for Chamfer Distance calculation
+// Initialize range 
+let rangeX = { min: -6, max: 6 };
+let rangeY = { min: -6, max: 6 };
 
 // Initialize your plot
 let plot = {}; // Placeholder for the plotly plot
@@ -120,18 +115,6 @@ function updateDataMode(mode) {
     data = dataNew.map(p => ({ x: p.x - meanX, y: p.y - meanY }));
 }
 
-function generateGridData(rangeX, rangeY, delta) {
-    let gridData = [];
-
-    for (let x = rangeX.min; x <= rangeX.max; x += delta) {
-        for (let y = rangeY.min; y <= rangeY.max; y += delta) {
-            gridData.push({ x: x, y: y });
-        }
-    }
-
-    return gridData;
-}
-
 function createScatterPlot() {
     let trace1 = {
         x: data.map(d => d.x),
@@ -142,20 +125,12 @@ function createScatterPlot() {
         hoverinfo: 'none' // No hover info shown - callbacks still fire
     };
 
-    // Generate grid data
-    let gridData = generateGridData(rangeX, rangeY, delta);
-
-    // Trace for the grid
-    let gridTrace = {
-        x: gridData.map(p => p.x),
-        y: gridData.map(p => p.y),
+    let trace2 = {
+        x: data.map(d => d.x),
+        y: data.map(d => d.y),
         mode: 'markers',
         type: 'scatter',
-        marker: {
-            size: 1,
-            opacity: 1
-        },
-        showlegend: false,
+        marker: { size: 8, color: 'red' },
         hoverinfo: 'none' // No hover info shown - callbacks still fire
     };
 
@@ -175,39 +150,62 @@ function createScatterPlot() {
         },
         showlegend: false,
         font: { size: 24 },
-        xaxes: {
+        xaxis: {
             range: [rangeX.min, rangeX.max],
             fixedrange: true,
             showticklabels: false,
             showgrid: false,
             zeroline: false
         },
-        yaxes: {
+        yaxis: {
             range: [rangeY.min, rangeY.max],
             fixedrange: true,
             showticklabels: false,
             showgrid: false,
             zeroline: false
         },
-        plot_bgcolor: 'white',
-        // No grid
-        showgrid: false,
-        // No axes
-        showline: false,
+        plot_bgcolor: 'white'
     };
 
     // Create plot
-    plot = Plotly.newPlot('scatter-plot', [trace1, gridTrace], layout);
+    plot = Plotly.newPlot('scatter-plot', [trace1, trace2], layout);
+
+    // Hide modebar
+    const scatterPlotElement = document.getElementById('scatter-plot');
+    scatterPlotElement.on('plotly_afterplot', function() {
+        const modeBar = document.getElementsByClassName('modebar')[0];
+        modeBar.style.display = 'none';        
+    });
 
     // Add hover event listener
-    const scatterPlotElement = document.getElementById('scatter-plot');
     scatterPlotElement.on('plotly_hover', function(eventData) {
 
+        // Offset
         let offsetX = eventData.xvals[0];
         let offsetY = eventData.yvals[0];
-        let rotateAngle = -Math.atan2(offsetY, offsetX);
-        console.log(`Hovered at (${offsetX}, ${offsetY}) with angle ${rotateAngle}`);
+        let rotateAngle = Math.atan2(offsetY, offsetX);
+        // console.log(`Hovered at (${offsetX}, ${offsetY}) with angle ${rotateAngle}`);
         
+        // Based on edit mode, update the plot
+        let figureData = scatterPlotElement.data;
+        let dataTransformed = [];
+        let title = '';
+        if (editMode == 'Translate') {
+            dataTransformed = dataTransform(data, offsetX, offsetY, 0);
+            title = chamferDistanceTitleFromOffset(data, offsetX, offsetY, 0);
+        } else if (editMode == 'Rotate') {
+            dataTransformed = dataTransform(data, 0, 0, rotateAngle);
+            title = chamferDistanceTitleFromOffset(data, 0, 0, rotateAngle);
+        } else {
+            throw new Error('Edit mode not implemented');
+        }
+        figureData[1].x = dataTransformed.map(p => p.x);
+        figureData[1].y = dataTransformed.map(p => p.y);
+        
+        // Redraw
+        scatterPlotElement.data = figureData;
+        scatterPlotElement.layout.title = title;
+        Plotly.redraw(scatterPlotElement);
     });
 }
 

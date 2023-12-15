@@ -185,7 +185,7 @@ graph = dcc.Graph(
     id='scatter-plot',
     figure=fig,
     config={
-    'displayModeBar': False
+        'displayModeBar': False
     }
 )
 dropdown_edit = dcc.Dropdown(
