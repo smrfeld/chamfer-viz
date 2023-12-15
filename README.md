@@ -39,7 +39,7 @@ Optionally: specify the port with `--port` flag or debug mode with `--debug` fla
 Mathematically, the Chamfer distance can be expressed as:
 
 ```math
-Chamfer_distance = Σ(min(dist(A_i, B_j)) + Σ(min(dist(B_i, A_j)))
+Chamfer distance = Σ(min(dist(A_i, B_j)) + Σ(min(dist(B_i, A_j)))
 ```
 
 Where:
