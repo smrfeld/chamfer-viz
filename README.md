@@ -2,6 +2,8 @@
 
 Visualization of the Chamfer distance between two point clouds using `dash` app in **both** Python and Javascript.
 
+[http://www.oliver-ernst.com/chamfer-viz/](http://www.oliver-ernst.com/chamfer-viz/)
+
 ![Example 1](readme_figures/ex1.gif)
 ![Example 2](readme_figures/ex2.gif)
 ![Example 3](readme_figures/ex3.gif)
