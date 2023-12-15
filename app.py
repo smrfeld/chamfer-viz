@@ -7,6 +7,7 @@ from scipy.spatial import KDTree
 from typing import Tuple
 from enum import Enum
 import dash_bootstrap_components as dbc
+import argparse
 
 
 # Axes ranges
@@ -47,7 +48,7 @@ class Data:
         elif mode == DataMode.GRID:
             # Grid in [-0.5,0.5] with 10 points in each direction
             grid = np.mgrid[-0.5:0.5:0.1, -0.5:0.5:0.1]
-            grid *= 6
+            grid *= 5
             data = np.vstack((grid[0].flatten(), grid[1].flatten())).T
         elif mode == DataMode.CLUSTERS:
             n_gaussian = np.random.randint(4, 10)
@@ -145,8 +146,8 @@ def create_scatter_fig() -> go.Figure:
 
     fig.add_trace(trace)
 
-    fig.update_xaxes(range=RANGE_X)
-    fig.update_yaxes(range=RANGE_Y)
+    fig.update_xaxes(range=RANGE_X, fixedrange=True)
+    fig.update_yaxes(range=RANGE_Y, fixedrange=True)
 
     # No legend
     fig.update_layout(showlegend=False, font=dict(size=24))
@@ -204,19 +205,25 @@ dropdown_data = dcc.Dropdown(
     id="data-dropdown",
 )
 buttons = [
-    dbc.Label("Edit mode"),
-    dropdown_edit,
-    dbc.Label("Data mode"),
-    dropdown_data,
-    dbc.Label("Randomize data"),
-    dbc.Button("Randomize", id="randomize-button", className="mr-1"),
+    dbc.Col([
+        dbc.Label("Edit mode"), 
+        dropdown_edit
+        ], md=4),
+    dbc.Col([
+        dbc.Label("Data mode"), 
+        dropdown_data
+        ], md=4),
+    dbc.Col([
+        dbc.Row(dbc.Label("Randomize data")), 
+        dbc.Row(dbc.Button("Randomize", id="randomize-button"))
+        ], md=4)
     ]
 app.layout = dbc.Container(
     [
         dbc.Row(
             [
-                dbc.Col(graph, md=10),
-                dbc.Col(buttons, md=2),
+                dbc.Row(buttons),
+                dbc.Row(graph),
             ],
             align="center",
         ),
@@ -311,5 +318,9 @@ def update_scatter_plot(hoverData, fig, edit_mode, data_mode, n_clicks):
 
 # Run the Dash app
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Visualize Chamfer distance")
+    parser.add_argument("--port", type=int, default=8050, help="Port to run server on")
+    parser.add_argument("--debug", action="store_true", help="Run in debug mode")
+    args = parser.parse_args()
 
-    app.run_server(debug=True)
+    app.run_server(debug=args.debug, port=args.port)
