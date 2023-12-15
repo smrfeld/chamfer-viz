@@ -1,16 +1,27 @@
 # Chamfer distance visualization
 
-Visualization of the Chamfer distance between two point clouds using `dash` app.
+Visualization of the Chamfer distance between two point clouds using `dash` app in **both** Python and Javascript.
 
 ## Running
 
-Insttall the requirements:
+### Javascript
+
+Navigate to the `js` directory and run using VSCode's Live Server extension or any other web server of your choice. For example:
+
+```bash
+cd js
+python -m http.server
+```
+
+### Python
+
+Navigate to the `python` directory and install the requirements:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Run the app:
+Then run the app:
 
 ```bash
 python app.py
@@ -47,6 +58,8 @@ The use of the KDTree data structure significantly speeds up the computation of 
 It's important to note that while KD-Trees offer efficient nearest neighbor and range search capabilities, their performance can degrade for very high-dimensional data (often referred to as the "curse of dimensionality"). In such cases, other data structures like ball trees or approximate nearest neighbor algorithms may be more suitable. Nevertheless, KD-Trees remain a valuable tool for solving a wide range of problems involving multi-dimensional data.
 
 ## References
+
+* [KDtree in JS](https://github.com/ubilabs/kd-tree-javascript)
 
 * [Basic Chamfer distance implementation](https://medium.com/@sim30217/chamfer-distance-4207955e8612)
 

@@ -53,8 +53,10 @@ function initializeApp() {
     createScatterPlot();
 }
 
+// Initialize app
 document.addEventListener('DOMContentLoaded', initializeApp);
 
+// Function to generate a batch of random normal numbers
 function randomNormalBatch(size) {
     let normals = [];
     for (let i = 0; i < size; i += 2) {
@@ -70,6 +72,7 @@ function randomNormalBatch(size) {
     return normals;
 }
 
+// Function to update data based on data mode
 function updateDataMode(mode) {
     let dataNew = [];
     let batchSize = 100;
@@ -115,6 +118,7 @@ function updateDataMode(mode) {
     data = dataNew.map(p => ({ x: p.x - meanX, y: p.y - meanY }));
 }
 
+// Function to create scatter plot
 function createScatterPlot() {
     let trace1 = {
         x: data.map(d => d.x),
@@ -209,7 +213,7 @@ function createScatterPlot() {
     });
 }
 
-
+// Event listeners for edit mode
 document.getElementById('edit-dropdown').addEventListener('change', function(event) {
     // Log
     console.log('Edit dropdown changed to ' + event.target.value);
@@ -218,6 +222,7 @@ document.getElementById('edit-dropdown').addEventListener('change', function(eve
     // Update plot or other elements based on edit mode
 });
 
+// Event listeners for data mode
 document.getElementById('data-dropdown').addEventListener('change', function(event) {
     // Log new value
     console.log('Data dropdown changed to ' + event.target.value);
@@ -227,6 +232,7 @@ document.getElementById('data-dropdown').addEventListener('change', function(eve
     createScatterPlot();
 });
 
+// Event listeners for randomize button
 document.getElementById('randomize-button').addEventListener('click', function() {
     // Log
     console.log('Randomize button clicked');
@@ -236,6 +242,7 @@ document.getElementById('randomize-button').addEventListener('click', function()
     createScatterPlot();
 });
 
+// Transform data by offset and rotation
 function dataTransform(data, offsetX, offsetY, rotateAngle) {
     // Applying the offset
     let transformedData = data.map(p => ({ x: p.x + offsetX, y: p.y + offsetY }));
@@ -255,6 +262,7 @@ function dataTransform(data, offsetX, offsetY, rotateAngle) {
     return transformedData;
 }
 
+// Transform data by offset and rotation and return x and y separately
 function dataTransformXY(data, offsetX, offsetY, rotateAngle) {
     const transformedData = dataTransform(data, offsetX, offsetY, rotateAngle);
     return {
@@ -263,6 +271,7 @@ function dataTransformXY(data, offsetX, offsetY, rotateAngle) {
     };
 }
 
+// Calculate chamfer distance
 function chamferDistance(data, dataOffset) {
     // Assuming 'distance' function and 'dimensions' are defined elsewhere
     // Log
@@ -288,11 +297,13 @@ function chamferDistance(data, dataOffset) {
     return distA + distB;
 }
 
+// Calculate chamfer distance from offset
 function chamferDistanceFromOffset(data, offsetX, offsetY, rotateAngle) {
     const dataOffset = dataTransform(data, offsetX, offsetY, rotateAngle);
     return chamferDistance(data, dataOffset);
 }
 
+// Calculate chamfer distance from offset and return title
 function chamferDistanceTitleFromOffset(data, offsetX, offsetY, rotateAngle) {
     const dist = chamferDistanceFromOffset(data, offsetX, offsetY, rotateAngle);
     return `Chamfer distance: ${dist.toFixed(2)}`;
